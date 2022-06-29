@@ -1,15 +1,43 @@
-import { StyleSheet } from 'react-native';
+import { FlatList, Image, StyleSheet } from "react-native";
+import useSWR from "swr";
 
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
-import { RootTabScreenProps } from '../types';
+import EditScreenInfo from "../components/EditScreenInfo";
+import { Text, View } from "../components/Themed";
+import { RootTabScreenProps } from "../types";
 
-export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+export default function TabOneScreen({ navigation }: RootTabScreenProps<"TabOne">) {
+  const { data, isValidating, error } = useSWR("https://fakestoreapi.com/products", fetcher);
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabOneScreen.tsx" />
+      <Text style={styles.title}>Fake Store</Text>
+
+      {isValidating ? (
+        <Text>Loading...</Text>
+      ) : (
+        <FlatList
+          data={data}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <View
+              style={{
+                width: "100%",
+                maxWidth: 170,
+                height: 170,
+                padding: 10,
+              }}
+            >
+              <Image source={{ uri: item?.image }} style={{ height: "75%" }} resizeMode="contain" />
+              <Text numberOfLines={2} style={[styles.title, { textAlign: "center", fontSize: 13, marginTop: 5 }]}>
+                {item?.title}
+              </Text>
+            </View>
+          )}
+          numColumns={2}
+          keyExtractor={(item, index) => item.id}
+        />
+      )}
     </View>
   );
 }
@@ -17,16 +45,11 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 20,
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+    fontWeight: "bold",
+    marginBottom: 10,
   },
 });
